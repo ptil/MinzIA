@@ -195,7 +195,7 @@ function MinzIA:OnCharacterCreated()
 		self.timerGetPlayerUnit:Stop()
 	end
 	
-	if #self.party != GroupLib.GetMemberCount() then
+	if #self.party ~= GroupLib.GetMemberCount() then
 		self:UpdateFormClass()
 	end
 
@@ -294,8 +294,8 @@ end
 
 function MinzIA:Output(string)
 	if GroupLib.InGroup() then
---		ChatSystemLib.Command("/p "..string)
-		Print(string)
+		ChatSystemLib.Command("/p "..string)
+--		Print(string)
 	else 
 		Print(string)
 	end
