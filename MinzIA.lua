@@ -66,7 +66,6 @@ end
 function MinzIA:OnLoad()
 	self.prefixNo = "CRB_CritNumberFloaters:sprCritNumber_Physical"
 	self.prefixClass = "IconSprites:Icon_Windows_UI_CRB_"
-
 	
 	--Print("Test");
 	self.xmlDoc = XmlDoc.CreateFromFile("MinzIA.xml")
@@ -87,6 +86,7 @@ end
 function MinzIA:OnDocLoaded()
 	if self.xmlDoc ~= nil and self.xmlDoc:IsLoaded() then
 	    self.wndMain = Apollo.LoadForm(self.xmlDoc, "Form", nil, self)
+		Apollo.RegisterEventHandler("WindowManagementReady", "OnWindowManagementReady", self) --Added to use built in location thingy
 		if self.wndMain == nil then
 			Apollo.AddAddonErrorText(self, "Could not load the main window for some reason.")
 			return
@@ -106,6 +106,11 @@ function MinzIA:OnDocLoaded()
 
 		-- Do additional Addon initialization here
 	end
+end
+
+--Built in location save/load
+function MinzIA:OnWindowManagementReady()
+    Event_FireGenericEvent("WindowManagementAdd", {wnd = self.wndMain, strName = "MinzIA"})
 end
 
 function MinzIA:OnMinzIAOn()
@@ -157,6 +162,7 @@ function MinzIA:UpdateFormClass()
 		end
 	end
 	for k,v in pairs(self.party) do
+		self.wndMain:FindChild("Member"..k):SetText(v["Name"]) --display name
 		self.wndMain:FindChild("Member"..k):SetSprite(self.prefixClass..v["Class"])
 		self.wndMain:FindChild("Member"..k):Show(true, true)
 		self.wndMain:FindChild("Member"..k):FindChild("CD"):SetSprite(self.prefixNo.."9")
@@ -176,7 +182,6 @@ function MinzIA:UpdateForm()
 		end
 	end
 end
-
 
 -----------------------------------------------------------------------------------------------
 -- MinzIA Instance
@@ -510,4 +515,3 @@ function MinzIA:GetLasAbilities()
 		self.timerUpdateLas:Stop()
 	end
 end
-
