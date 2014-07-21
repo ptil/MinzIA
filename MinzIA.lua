@@ -240,14 +240,15 @@ function MinzIA:OnGroupJoin()
 end
 
 function MinzIA:OnGroupLeft()
-	--self:Output("OnGroupLeft()")
-	self.timerUpdateForm:Stop()
-	self.timerUpdateLocalIA:Stop()
-	self.wndMain:Show(false, true)
+	if not GroupLib.InGroup() then
+		self.timerUpdateForm:Stop()
+		self.timerUpdateLocalIA:Stop()
+		self.wndMain:Show(false, true)
+	end
 end
 
 function MinzIA:OnMinzIAMessage(channel, tMsg)
-	--self:Output(tMsg.name.." "..tMsg.IA)
+	--self:Output(tMsg.name.." "..tMsg.IA.." "..tMsg.CD)
 	if tMsg ~= nil then
 		if tMsg.type == "update" then
 			local idx = -1
@@ -289,7 +290,8 @@ end
 
 function MinzIA:Output(string)
 	if GroupLib.InGroup() then
-		ChatSystemLib.Command("/p "..string)
+--		ChatSystemLib.Command("/p "..string)
+		Print(string)
 	else 
 		Print(string)
 	end
@@ -394,14 +396,14 @@ function MinzIA:UpdateCooldowns()
 				if (fCooldown > 0) then
 					self:AddActiveCooldown(id, spl, fCooldown, -1, -1)
 					self:SkillUse(spl:GetName())
-					if self.cd <= 0 or self.cd > fCooldown then
+					if self.cd <= 0.5 or self.cd > fCooldown then
 						self.cd = fCooldown
 					end
 					--self:Output(self.playerUnit.." uses "..spl:GetName())
 				end
 			elseif (fCooldown > 0) then
 				self.activeCooldowns[id].lastTimerUpdate = time
-				if self.cd <= 0 or self.cd > fCooldown then
+				if self.cd <= 0.5 or self.cd > fCooldown then
 					self.cd = fCooldown
 				end
 				--Sometimes GetSpellCooldown will return a spell's full cooldown for a quick moment as
