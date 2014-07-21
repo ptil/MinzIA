@@ -122,6 +122,7 @@ end
 
 function MinzIA:UpdateFormClass()
 	--self:Output("UpdateFormClass begin inGroup?"..tostring(GroupLib.InGroup()).." inRaid?"..tostring(GroupLib.InRaid()))
+	if self.wndMain == nil then return end
 	self.party = {}
 	if not GroupLib.InGroup() and not GroupLib.InRaid() then 
 		if self.timerUpdateFormClass ~= nil then 
@@ -169,8 +170,8 @@ function MinzIA:UpdateForm()
 	if GroupLib.InGroup and not GroupLib.InRaid() then
 		for k,v in pairs(self.party) do
 			self.wndMain:FindChild("Member"..k):FindChild("IA"):SetSprite(self.prefixNo..v["IA"])
-			if v["IA"] == 0 and v["CD"] ~= nil then
-				self.wndMain:FindChild("Member"..k):FindChild("CD"):SetText(string.format("%.1f", v["CD"]))
+			if v["CD"] ~= nil and v["CD"] >= 1 then
+				self.wndMain:FindChild("Member"..k):FindChild("CD"):SetText(string.format("%ds", v["CD"]))
 			else 
 				self.wndMain:FindChild("Member"..k):FindChild("CD"):SetText("")
 			end
@@ -281,9 +282,7 @@ function MinzIA:CreateMsg(type, name, ia)
 	tMsg["type"] = type
 	tMsg["name"] = name
 	tMsg["IA"] = ia
-	if ia == 0 then
 	tMsg["CD"] = self.cd
-	else tMsg["CD"] = 0 end
 	return tMsg
 end
 
