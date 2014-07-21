@@ -58,6 +58,7 @@ function MinzIA:PrepareTable()
 	self.currentIA = 0
 	self.party = {}
 	self.retry = 0
+	self.cd = 0
 end
 
 -----------------------------------------------------------------------------------------------
@@ -94,17 +95,6 @@ function MinzIA:OnDocLoaded()
 		self.wndMain:Show(true, true)
 		self:ClearForm()
 		self:UpdateFormClass()
-	    
-
-		-- if the xmlDoc is no longer needed, you should set it to nil
-		-- self.xmlDoc = nil
-		
-		-- Register handlers for events, slash commands and timer, etc.
-		-- e.g. Apollo.RegisterEventHandler("KeyDown", "OnKeyDown", self)322
-		
-
-
-		-- Do additional Addon initialization here
 	end
 end
 
@@ -165,7 +155,7 @@ function MinzIA:UpdateFormClass()
 		self.wndMain:FindChild("Member"..k):SetText(v["Name"]) --display name
 		self.wndMain:FindChild("Member"..k):SetSprite(self.prefixClass..v["Class"])
 		self.wndMain:FindChild("Member"..k):Show(true, true)
-		self.wndMain:FindChild("Member"..k):FindChild("CD"):SetSprite(self.prefixNo.."9")
+		self.wndMain:FindChild("Member"..k):FindChild("IA"):SetSprite(self.prefixNo.."9")
 		--self:Output(v["Name"]..":"..v["Class"].." loaded ")
 	end
 	--self:Output(tostring(GroupLib.InGroup()).." "..#self.party)
@@ -178,7 +168,12 @@ end
 function MinzIA:UpdateForm()
 	if GroupLib.InGroup and not GroupLib.InRaid() then
 		for k,v in pairs(self.party) do
-			self.wndMain:FindChild("Member"..k):FindChild("CD"):SetSprite(self.prefixNo..v["IA"])
+			self.wndMain:FindChild("Member"..k):FindChild("IA"):SetSprite(self.prefixNo..v["IA"])
+			if v["IA"] == 0 and v["CD"] ~= nil then
+				self.wndMain:FindChild("Member"..k):FindChild("CD"):SetText(string.format("%.1f", v["CD"]))
+			else 
+				self.wndMain:FindChild("Member"..k):FindChild("CD"):SetText("")
+			end
 		end
 	end
 end
@@ -205,14 +200,13 @@ function MinzIA:OnCharacterCreated()
 	self.timerUpdateFormClass = ApolloTimer.Create(1, true, "UpdateFormClass", self)
 	self.timerUpdateForm = ApolloTimer.Create(0.3, true, "UpdateForm", self)
 	self.timerUpdateLocalIA = ApolloTimer.Create(0.3, true, "UpdateLocalIA", self)
-
+	self.timerProgress = ApolloTimer.Create(0.2, true, "UpdateProgress", self)
 	
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnUnitEnteredCombat", self)
 	Apollo.RegisterEventHandler("AbilityBookChange", "ScheduleLasUpdate", self)
 	Apollo.RegisterEventHandler("Group_Left", "OnGroupLeft", self)
 	Apollo.RegisterEventHandler("Group_Join", "OnGroupJoin", self)
 	Apollo.RegisterEventHandler("Group_Remove", "OnGroupUpdate", self)
-	Apollo.RegisterEventHandler("Group_Add", "OnGroupUpdate", self)
 
 
 	
@@ -264,6 +258,7 @@ function MinzIA:OnMinzIAMessage(channel, tMsg)
 			end
 			if(self.party[idx] == nil) then return end
 			self.party[idx]["IA"] = tMsg.IA
+			self.party[idx]["CD"] = tMsg.CD
 		end
 	end
 end
@@ -281,6 +276,9 @@ function MinzIA:CreateMsg(type, name, ia)
 	tMsg["type"] = type
 	tMsg["name"] = name
 	tMsg["IA"] = ia
+	if ia == 0 then
+	tMsg["CD"] = self.cd
+	else tMsg["CD"] = 0 end
 	return tMsg
 end
 
@@ -396,12 +394,16 @@ function MinzIA:UpdateCooldowns()
 				if (fCooldown > 0) then
 					self:AddActiveCooldown(id, spl, fCooldown, -1, -1)
 					self:SkillUse(spl:GetName())
-
+					if self.cd <= 0 or self.cd > fCooldown then
+						self.cd = fCooldown
+					end
 					--self:Output(self.playerUnit.." uses "..spl:GetName())
 				end
 			elseif (fCooldown > 0) then
 				self.activeCooldowns[id].lastTimerUpdate = time
-			
+				if self.cd <= 0 or self.cd > fCooldown then
+					self.cd = fCooldown
+				end
 				--Sometimes GetSpellCooldown will return a spell's full cooldown for a quick moment as
 				--it comes off cooldown, instead of returning 0.  To handle this, ignore increases in
 				--fCooldown if the spell is about to expire.
