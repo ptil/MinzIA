@@ -194,6 +194,10 @@ function MinzIA:OnCharacterCreated()
 	elseif (self.timerGetPlayerUnit ~= nil) then
 		self.timerGetPlayerUnit:Stop()
 	end
+	
+	if #self.party != GroupLib.GetMemberCount() then
+		self:UpdateFormClass()
+	end
 
 	self.timerUpdateTracker = ApolloTimer.Create(0.5, true, "UpdateTrackedItems", self)
 	self.timerUpdateLas = ApolloTimer.Create(1, true, "GetLasAbilities", self)
