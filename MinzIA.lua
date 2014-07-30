@@ -319,7 +319,7 @@ function MinzIA:GetIA(splObj, tier)
 			return 1
 		end
 	end
-	if(string.match("Stagger,Collapse,Flash Bang,Grapple,Obstruct Vision,Incapacitate,Shockwave,Arcane Shock", splName)) then
+	if(string.match("Stagger,Collapse,Flash Bang,Grapple,Obstruct Vision,Incapacitate,Shockwave,Arcane Shock,Spatial Shift", splName)) then
 		return 1
 	end
 	
